@@ -31,7 +31,14 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max upload
 
 db.init_app(app)
 
+with app.app_context():
+    try:
+        db.create_all()
+    except Exception as e:
+        print(f"Database table initialization warning: {e}")
+
 login_manager = LoginManager()
+
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = 'info'
