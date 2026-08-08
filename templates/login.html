@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - CodeForge{% endblock %}
+
+{% block content %}
+<div style="max-width: 420px; margin: 40px auto;">
+    <div class="box">
+        <h2 style="text-align: center; margin-bottom: 20px; font-size: 20px;">Sign in to CodeForge</h2>
+        <form action="{{ url_for('login', next=request.args.get('next', '')) }}" method="POST">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                <label for="login_id">Username or Email</label>
+                {{ form.login_id(class="form-control", placeholder="enter username or email") }}
+                {% for error in form.login_id.errors %}
+                    <div class="error-text">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                {{ form.password(class="form-control", placeholder="••••••••") }}
+                {% for error in form.password.errors %}
+                    <div class="error-text">{{ error }}</div>
+                {% endfor %}
+            </div>
+
+            <div style="margin-top: 20px;">
+                {{ form.submit(class="btn btn-primary", style="width: 100%; padding: 10px; font-size: 15px;") }}
+            </div>
+        </form>
+    </div>
+
+    <div class="box" style="text-align: center; font-size: 13px;">
+        New to CodeForge? <a href="{{ url_for('register') }}">Create an account</a>.
+    </div>
+</div>
+{% endblock %}

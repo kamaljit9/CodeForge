@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - CodeForge{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+    <h1 style="font-size: 24px; display: flex; align-items: center; gap: 8px;">
+        🛡️ Platform Admin Panel
+    </h1>
+    <p style="color: var(--text-muted); font-size: 13px;">Overview of all users, repositories, and platform management controls.</p>
+</div>
+
+<!-- Stats Bar -->
+<div class="box" style="margin-bottom: 25px;">
+    <h2 style="font-size: 16px; margin-bottom: 15px;">Platform Statistics</h2>
+    <div style="display: flex; justify-content: space-around; text-align: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <div style="font-size: 24px; font-weight: bold; color: #58a6ff;">{{ stats.total_users }}</div>
+            <div style="color: var(--text-muted); font-size: 12px;">Total Users</div>
+        </div>
+        <div>
+            <div style="font-size: 24px; font-weight: bold; color: #7ee787;">{{ stats.total_repos }}</div>
+            <div style="color: var(--text-muted); font-size: 12px;">Total Repositories</div>
+        </div>
+        <div>
+            <div style="font-size: 24px; font-weight: bold; color: #f2cc60;">{{ stats.total_stars }}</div>
+            <div style="color: var(--text-muted); font-size: 12px;">Total Stars</div>
+        </div>
+        <div>
+            <div style="font-size: 24px; font-weight: bold; color: #d2a8ff;">{{ stats.total_issues }}</div>
+            <div style="color: var(--text-muted); font-size: 12px;">Total Issues</div>
+        </div>
+    </div>
+</div>
+
+<!-- All Users Table -->
+<div class="box">
+    <div class="box-header">
+        <span>👥 All Users ({{ users|length }})</span>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Joined Date</th>
+                <th>Repos Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>
+                        <a href="{{ url_for('profile', username=u.username) }}" style="font-weight: bold;">
+                            @{{ u.username }}
+                        </a>
+                    </td>
+                    <td>{{ u.email }}</td>
+                    <td>
+                        {% if u.is_admin %}
+                            <span class="badge badge-admin">Admin</span>
+                        {% else %}
+                            <span class="badge">User</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ u.repositories|length }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- All Repositories Table -->
+<div class="box">
+    <div class="box-header">
+        <span>📁 All Repositories ({{ repos|length }})</span>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Repository</th>
+                <th>Owner</th>
+                <th>Visibility</th>
+                <th>Files</th>
+                <th>Stars</th>
+                <th>Created Date</th>
+                <th style="text-align: center; width: 120px;">Admin Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in repos %}
+                <tr>
+                    <td>{{ r.id }}</td>
+                    <td>
+                        <a href="{{ url_for('view_repo', repo_id=r.id) }}" style="font-weight: bold;">
+                            {{ r.name }}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('profile', username=r.owner.username) }}">
+                            @{{ r.owner.username }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if r.is_private %}
+                            <span class="badge badge-private">Private</span>
+                        {% else %}
+                            <span class="badge badge-public">Public</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ r.files|length }}</td>
+                    <td>⭐ {{ r.star_count() }}</td>
+                    <td>{{ r.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td style="text-align: center;">
+                        <form action="{{ url_for('delete_repo', repo_id=r.id) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-danger confirm-delete" data-confirm="Admin Override: Are you sure you want to delete repository '{{ r.name }}'?">
+                                Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

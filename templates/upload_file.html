@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload File to {{ repo.name }} - CodeForge{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 30px auto;">
+    <div class="box">
+        <h2 style="margin-bottom: 5px; font-size: 20px;">Upload File</h2>
+        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">
+            Target repository: <a href="{{ url_for('view_repo', repo_id=repo.id) }}"><strong>{{ repo.owner.username }}/{{ repo.name }}</strong></a>
+        </p>
+
+        <form action="{{ url_for('upload_file', repo_id=repo.id) }}" method="POST" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <label for="file">Choose File *</label>
+                {{ form.file(class="form-control", style="padding: 10px;") }}
+                {% for error in form.file.errors %}
+                    <div class="error-text">{{ error }}</div>
+                {% endfor %}
+                <div class="form-text">Select code, Markdown, text, or documentation file to upload (Max 16 MB).</div>
+            </div>
+
+            <div style="margin-top: 25px; display: flex; gap: 10px;">
+                {{ form.submit(class="btn btn-primary", style="padding: 8px 18px;") }}
+                <a href="{{ url_for('view_repo', repo_id=repo.id) }}" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

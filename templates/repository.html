@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ repo.owner.username }}/{{ repo.name }} - CodeForge{% endblock %}
+
+{% block content %}
+<div class="repo-header">
+    <div>
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">
+            <a href="{{ url_for('profile', username=repo.owner.username) }}">@{{ repo.owner.username }}</a> /
+        </div>
+        <span class="repo-title">{{ repo.name }}</span>
+        {% if repo.is_private %}
+            <span class="badge badge-private" style="margin-left: 8px;">Private</span>
+        {% else %}
+            <span class="badge badge-public" style="margin-left: 8px;">Public</span>
+        {% endif %}
+
+        {% if repo.description %}
+            <p style="color: var(--text-muted); margin-top: 6px; font-size: 14px;">{{ repo.description }}</p>
+        {% endif %}
+    </div>
+
+    <div class="repo-actions">
+        {% if current_user.is_authenticated %}
+            <form action="{{ url_for('toggle_star', repo_id=repo.id) }}" method="POST" style="display: inline;">
+                {% if is_starred %}
+                    <button type="submit" class="btn btn-sm">⭐ Unstar ({{ repo.star_count() }})</button>
+                {% else %}
+                    <button type="submit" class="btn btn-sm">⭐ Star ({{ repo.star_count() }})</button>
+                {% endif %}
+            </form>
+        {% else %}
+            <span class="btn btn-sm" style="cursor: default;">⭐ Stars: {{ repo.star_count() }}</span>
+        {% endif %}
+
+        <a href="{{ url_for('view_issues', repo_id=repo.id) }}" class="btn btn-sm">
+            💬 Issues ({{ repo.open_issues_count() }})
+        </a>
+
+        {% if current_user.is_authenticated and (current_user.id == repo.owner_id or current_user.is_admin) %}
+            <a href="{{ url_for('upload_file', repo_id=repo.id) }}" class="btn btn-sm btn-primary">+ Upload File</a>
+
+            <form action="{{ url_for('delete_repo', repo_id=repo.id) }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-sm btn-danger confirm-delete" data-confirm="Are you sure you want to delete repository '{{ repo.name }}'? All files and issues will be permanently removed.">
+                    🗑️ Delete Repo
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="box" style="padding: 0; overflow: hidden;">
+    <div class="box-header" style="margin: 0; border-radius: 0; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+        <span>📁 Files ({{ repo.files|length }})</span>
+        <span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">Created: {{ repo.created_at.strftime('%Y-%m-%d') }}</span>
+    </div>
+
+    {% if repo.files %}
+        <table class="data-table" style="margin: 0; border: 0;">
+            <thead>
+                <tr>
+                    <th style="border-left: 0;">File Name</th>
+                    <th>Size</th>
+                    <th>Uploaded</th>
+                    <th style="border-right: 0; width: 140px; text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in repo.files %}
+                    <tr>
+                        <td style="border-left: 0;">
+                            📄 <a href="{{ url_for('view_file', repo_id=repo.id, file_id=file.id) }}" style="font-weight: bold;">
+                                {{ file.filename }}
+                            </a>
+                        </td>
+                        <td>{{ file.formatted_size() }}</td>
+                        <td>{{ file.uploaded_at.strftime('%b %d, %Y %H:%M') }}</td>
+                        <td style="border-right: 0; text-align: center;">
+                            <a href="{{ url_for('view_file', repo_id=repo.id, file_id=file.id) }}" class="btn btn-sm">View</a>
+                            {% if current_user.is_authenticated and (current_user.id == repo.owner_id or current_user.is_admin) %}
+                                <form action="{{ url_for('delete_file', repo_id=repo.id, file_id=file.id) }}" method="POST" style="display: inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger confirm-delete" data-confirm="Delete file '{{ file.filename }}'?">Delete</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div style="padding: 30px; text-align: center; color: var(--text-muted);">
+            This repository is empty. 
+            {% if current_user.is_authenticated and (current_user.id == repo.owner_id or current_user.is_admin) %}
+                <br><br>
+                <a href="{{ url_for('upload_file', repo_id=repo.id) }}" class="btn btn-primary">+ Upload your first file</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+{% if readme_file %}
+    <div class="readme-box">
+        <div class="readme-header">
+            📖 README.md
+        </div>
+        <div class="readme-body">
+            {% if readme_content %}
+                {{ readme_content|render_markdown|safe }}
+            {% else %}
+                <p style="color: var(--text-muted);">Empty README.md file.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

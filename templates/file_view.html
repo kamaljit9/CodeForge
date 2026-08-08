@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ file_record.filename }} - {{ repo.name }} - CodeForge{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+    <div>
+        <div style="font-size: 13px; color: var(--text-muted);">
+            <a href="{{ url_for('profile', username=repo.owner.username) }}">@{{ repo.owner.username }}</a> /
+            <a href="{{ url_for('view_repo', repo_id=repo.id) }}">{{ repo.name }}</a> /
+        </div>
+        <h1 style="font-size: 20px; margin-top: 2px;">📄 {{ file_record.filename }}</h1>
+    </div>
+
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <a href="{{ url_for('view_repo', repo_id=repo.id) }}" class="btn btn-sm">⬅ Back to Repo</a>
+        {% if current_user.is_authenticated and (current_user.id == repo.owner_id or current_user.is_admin) %}
+            <form action="{{ url_for('delete_file', repo_id=repo.id, file_id=file_record.id) }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-sm btn-danger confirm-delete" data-confirm="Delete file '{{ file_record.filename }}'?">Delete File</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="box" style="padding: 0; overflow: hidden;">
+    <div class="box-header" style="margin: 0; border-radius: 0; border-top-left-radius: 6px; border-top-right-radius: 6px;">
+        <span>{{ lines|length }} lines &bull; {{ file_record.formatted_size() }}</span>
+        <span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">Uploaded: {{ file_record.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</span>
+    </div>
+
+    {% if is_binary %}
+        <div style="padding: 40px; text-align: center; color: var(--text-muted);">
+            ⚠️ [Binary File - Preview Not Available]
+        </div>
+    {% else %}
+        <div style="overflow-x: auto;">
+            <table class="file-code-table">
+                <tbody>
+                    {% for line in lines %}
+                        <tr>
+                            <td class="line-num">{{ loop.index }}</td>
+                            <td class="line-code">{{ line }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
